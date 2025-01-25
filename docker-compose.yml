@@ -1,0 +1,38 @@
+networks:
+  booking-network:
+    external: true
+
+services:
+  postgresql-db-rating:
+    image: postgres:latest
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: rating_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - postgresql-db-rating:/var/lib/postgresql/data
+    networks:
+      - booking-network
+
+  rating-service:
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-db-rating:5432/rating_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgresql-db-rating
+    restart: on-failure
+    volumes:
+      - uploads-data:/app/uploads
+    networks:
+      - booking-network
+
+volumes:
+  postgresql-db-rating:
+  uploads-data:
