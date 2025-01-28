@@ -25,7 +25,9 @@ import java.util.stream.Collectors;
 @Transactional
 public class HostRatingService {
     private final HostRatingRepository hostRatingRepository;
+
     private final UserServiceClient userServiceClient;
+
     private final ReservationServiceClient reservationServiceClient;
 
     public HostRatingService(HostRatingRepository hostRatingRepository,
@@ -66,6 +68,7 @@ public class HostRatingService {
             newHostRating.setDateTime(LocalDateTime.now());
 
             hostRatingRepository.save(newHostRating);
+
             return new MessageResponse("Host rated successfully.");
         } else {
             throw new SecurityException("You cannot rate this host.");
@@ -113,6 +116,7 @@ public class HostRatingService {
         hostRating.setDateTime(LocalDateTime.now());
 
         hostRatingRepository.save(hostRating);
+
         return new MessageResponse("Host rating updated successfully.");
     }
 
@@ -127,8 +131,7 @@ public class HostRatingService {
                 .doubleValue();
     }
 
-    public MessageResponse deleteHostRating(UUID hostRatingId,
-                                            String jwtToken) {
+    public MessageResponse deleteHostRating(UUID hostRatingId, String jwtToken) {
         UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
         if (userDetails == null) {
             throw new IllegalStateException("User details could not be retrieved.");
@@ -145,6 +148,7 @@ public class HostRatingService {
         }
 
         hostRatingRepository.delete(hostRating);
+
         return new MessageResponse("Host rating deleted successfully.");
     }
 }

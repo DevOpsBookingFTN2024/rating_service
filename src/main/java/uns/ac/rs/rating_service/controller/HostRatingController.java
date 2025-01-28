@@ -24,8 +24,8 @@ public class HostRatingController {
                                       @Valid @RequestBody CreateHostRatingRequest createHostRatingRequest,
                                       @RequestHeader("Authorization") String authorizationHeader) {
         String jwtToken = authorizationHeader.replace("Bearer ", "");
-        MessageResponse messageResponse = hostRatingService.rateHost(
-                host, createHostRatingRequest, jwtToken);
+        MessageResponse messageResponse = hostRatingService
+                .rateHost(host, createHostRatingRequest, jwtToken);
         return ResponseEntity.ok(messageResponse);
     }
 
@@ -46,8 +46,8 @@ public class HostRatingController {
                                               @Valid @RequestBody UpdateHostRatingRequest updateHostRatingRequest,
                                               @RequestHeader("Authorization") String authorizationHeader) {
         String jwtToken = authorizationHeader.replace("Bearer ", "");
-        MessageResponse messageResponse = hostRatingService.updateHostRating(
-                hostRatingId, updateHostRatingRequest, jwtToken);
+        MessageResponse messageResponse = hostRatingService
+                .updateHostRating(hostRatingId, updateHostRatingRequest, jwtToken);
         return ResponseEntity.ok(messageResponse);
     }
 
