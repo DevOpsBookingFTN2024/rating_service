@@ -21,11 +21,11 @@ public class AccommodationRatingController {
 
     @PostMapping("/create/{idAccommodation}")
     public ResponseEntity<?> rateAccommodation(@PathVariable UUID idAccommodation,
-                                               @Valid @RequestBody CreateAccommodationRatingRequest createAccommodationRatingRequest,
-                                               @RequestHeader("Authorization") String authorizationHeader) {
+                             @Valid @RequestBody CreateAccommodationRatingRequest createAccommodationRatingRequest,
+                             @RequestHeader("Authorization") String authorizationHeader) {
         String jwtToken = authorizationHeader.replace("Bearer ", "");
-        MessageResponse messageResponse = accommodationRatingService.rateAccommodation(
-                idAccommodation, createAccommodationRatingRequest, jwtToken);
+        MessageResponse messageResponse = accommodationRatingService
+                .rateAccommodation(idAccommodation, createAccommodationRatingRequest, jwtToken);
         return ResponseEntity.ok(messageResponse);
     }
 
@@ -45,11 +45,11 @@ public class AccommodationRatingController {
 
     @PutMapping("/update/{accommodationRatingId}")
     public ResponseEntity<?> updateAccommodationRating(@PathVariable UUID accommodationRatingId,
-                                                       @Valid @RequestBody UpdateAccommodationRatingRequest updateAccommodationRatingRequest,
-                                                       @RequestHeader("Authorization") String authorizationHeader) {
+                             @Valid @RequestBody UpdateAccommodationRatingRequest updateAccommodationRatingRequest,
+                             @RequestHeader("Authorization") String authorizationHeader) {
         String jwtToken = authorizationHeader.replace("Bearer ", "");
-        MessageResponse messageResponse = accommodationRatingService.updateAccommodationRating(
-                accommodationRatingId, updateAccommodationRatingRequest, jwtToken);
+        MessageResponse messageResponse = accommodationRatingService
+                .updateAccommodationRating(accommodationRatingId, updateAccommodationRatingRequest, jwtToken);
         return ResponseEntity.ok(messageResponse);
     }
 

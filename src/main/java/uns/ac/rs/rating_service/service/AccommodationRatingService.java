@@ -25,8 +25,11 @@ import java.util.stream.Collectors;
 @Transactional
 public class AccommodationRatingService {
     private final AccommodationRatingRepository accommodationRatingRepository;
+
     private final UserServiceClient userServiceClient;
+
     private final ReservationServiceClient reservationServiceClient;
+
 
     public AccommodationRatingService(AccommodationRatingRepository accommodationRatingRepository,
                                       UserServiceClient userServiceClient,
@@ -66,6 +69,7 @@ public class AccommodationRatingService {
             newAccommodationRating.setDateTime(LocalDateTime.now());
 
             accommodationRatingRepository.save(newAccommodationRating);
+
             return new MessageResponse("Accommodation rated successfully.");
         } else {
             throw new SecurityException("You cannot rate this accommodation.");
@@ -115,6 +119,7 @@ public class AccommodationRatingService {
         accommodationRating.setDateTime(LocalDateTime.now());
 
         accommodationRatingRepository.save(accommodationRating);
+
         return new MessageResponse("Accommodation rating updated successfully.");
     }
 
@@ -129,8 +134,7 @@ public class AccommodationRatingService {
                 .doubleValue();
     }
 
-    public MessageResponse deleteAccommodationRating(UUID accommodationRatingId,
-                                                     String jwtToken) {
+    public MessageResponse deleteAccommodationRating(UUID accommodationRatingId, String jwtToken) {
         UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
         if (userDetails == null) {
             throw new IllegalStateException("User details could not be retrieved.");
@@ -148,6 +152,7 @@ public class AccommodationRatingService {
         }
 
         accommodationRatingRepository.delete(accommodationRating);
+
         return new MessageResponse("Accommodation rating deleted successfully.");
     }
 }
