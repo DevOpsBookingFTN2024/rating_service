@@ -3,13 +3,18 @@ package uns.ac.rs.rating_service.service;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import uns.ac.rs.rating_service.dto.AccommodationRatingDTO;
-import uns.ac.rs.rating_service.dto.UserDTO;
+import uns.ac.rs.rating_service.dto.client.AccommodationDTO;
+import uns.ac.rs.rating_service.dto.client.CreateNotificationRequest;
+import uns.ac.rs.rating_service.dto.client.UserDTO;
 import uns.ac.rs.rating_service.dto.request.CreateAccommodationRatingRequest;
 import uns.ac.rs.rating_service.dto.request.UpdateAccommodationRatingRequest;
 import uns.ac.rs.rating_service.dto.response.MessageResponse;
 import uns.ac.rs.rating_service.mapper.AccommodationRatingMapper;
 import uns.ac.rs.rating_service.model.AccommodationRating;
+import uns.ac.rs.rating_service.model.client.ENotificationType;
 import uns.ac.rs.rating_service.repository.AccommodationRatingRepository;
+import uns.ac.rs.rating_service.service.client.AccommodationServiceClient;
+import uns.ac.rs.rating_service.service.client.NotificationServiceClient;
 import uns.ac.rs.rating_service.service.client.ReservationServiceClient;
 import uns.ac.rs.rating_service.service.client.UserServiceClient;
 import java.math.BigDecimal;
@@ -28,15 +33,22 @@ public class AccommodationRatingService {
 
     private final UserServiceClient userServiceClient;
 
+    private final AccommodationServiceClient accommodationServiceClient;
+
     private final ReservationServiceClient reservationServiceClient;
 
+    private final NotificationServiceClient notificationServiceClient;
 
     public AccommodationRatingService(AccommodationRatingRepository accommodationRatingRepository,
                                       UserServiceClient userServiceClient,
-                                      ReservationServiceClient reservationServiceClient) {
+                                      AccommodationServiceClient accommodationServiceClient,
+                                      ReservationServiceClient reservationServiceClient,
+                                      NotificationServiceClient notificationServiceClient) {
         this.accommodationRatingRepository = accommodationRatingRepository;
         this.userServiceClient = userServiceClient;
+        this.accommodationServiceClient = accommodationServiceClient;
         this.reservationServiceClient = reservationServiceClient;
+        this.notificationServiceClient = notificationServiceClient;
     }
 
     public MessageResponse rateAccommodation(UUID idAccommodation,
@@ -59,6 +71,11 @@ public class AccommodationRatingService {
             throw new IllegalArgumentException("You have already rated this accommodation.");
         }
 
+        AccommodationDTO accommodationDetails = accommodationServiceClient.getAccommodationDetails(idAccommodation);
+        if (accommodationDetails == null) {
+            throw new IllegalStateException("Accommodation details could not be retrieved.");
+        }
+
         if (reservationServiceClient.isGuestHasSuccessfullyPassedReservationAccommodation(idAccommodation, jwtToken)) {
             AccommodationRating newAccommodationRating = new AccommodationRating(
                     userDetails.getUsername(),
@@ -69,6 +86,18 @@ public class AccommodationRatingService {
             newAccommodationRating.setDateTime(LocalDateTime.now());
 
             accommodationRatingRepository.save(newAccommodationRating);
+
+            CreateNotificationRequest createNotificationRequest = new CreateNotificationRequest(
+                    accommodationDetails.getHost(),
+                    "Guest "
+                            + userDetails.getUsername()
+                            + " rated your accommodation "
+                            + accommodationDetails.getName()
+                            + ".",
+                    ENotificationType.ACCOMMODATION_RATED.name()
+            );
+
+            notificationServiceClient.createNotification(createNotificationRequest, jwtToken);
 
             return new MessageResponse("Accommodation rated successfully.");
         } else {
@@ -87,6 +116,21 @@ public class AccommodationRatingService {
         AccommodationRating accommodationRating = accommodationRatingRepository.findById(accommodationRatingId)
                 .orElseThrow(() -> new NoSuchElementException("Accommodation rating not found with id: "
                         + accommodationRatingId));
+
+        return AccommodationRatingMapper.toAccommodationRatingDTO(accommodationRating);
+    }
+
+    public AccommodationRatingDTO getAccommodationRatingByGuest(String jwtToken, UUID idAccommodation) {
+        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
+        if (userDetails == null) {
+            throw new IllegalStateException("User details could not be retrieved.");
+        }
+        if (!userDetails.getRoles().contains("ROLE_GUEST")) {
+            throw new SecurityException("User do not have permission for this action.");
+        }
+
+        AccommodationRating accommodationRating = accommodationRatingRepository
+                .findByGuestAndIdAccommodation(userDetails.getUsername(), idAccommodation);
 
         return AccommodationRatingMapper.toAccommodationRatingDTO(accommodationRating);
     }

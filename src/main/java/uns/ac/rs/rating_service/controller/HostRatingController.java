@@ -41,6 +41,14 @@ public class HostRatingController {
         return ResponseEntity.ok(hostRating);
     }
 
+    @GetMapping("/guest/{host}")
+    public ResponseEntity<?> getHostRatingByGuest(@PathVariable String host,
+                                                  @RequestHeader("Authorization") String authorizationHeader) {
+        String jwtToken = authorizationHeader.replace("Bearer ", "");
+        HostRatingDTO hostRating = hostRatingService.getHostRatingByGuest(jwtToken, host);
+        return ResponseEntity.ok(hostRating);
+    }
+
     @PutMapping("/update/{hostRatingId}")
     public ResponseEntity<?> updateHostRating(@PathVariable UUID hostRatingId,
                                               @Valid @RequestBody UpdateHostRatingRequest updateHostRatingRequest,

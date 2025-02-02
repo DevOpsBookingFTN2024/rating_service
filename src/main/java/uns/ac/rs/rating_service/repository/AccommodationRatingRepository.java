@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface AccommodationRatingRepository extends JpaRepository<AccommodationRating, UUID> {
     List<AccommodationRating> findByIdAccommodation(UUID idAccommodation);
 
+    AccommodationRating findByGuestAndIdAccommodation(String guest, UUID idAccommodation);
+
     boolean existsByGuestAndIdAccommodation(String guest, UUID idAccommodation);
 
     @Query("SELECT AVG(ar.rating) FROM AccommodationRating ar WHERE ar.idAccommodation = :idAccommodation")
