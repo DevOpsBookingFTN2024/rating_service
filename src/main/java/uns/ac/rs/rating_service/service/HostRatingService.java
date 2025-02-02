@@ -3,13 +3,16 @@ package uns.ac.rs.rating_service.service;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import uns.ac.rs.rating_service.dto.HostRatingDTO;
-import uns.ac.rs.rating_service.dto.UserDTO;
+import uns.ac.rs.rating_service.dto.client.CreateNotificationRequest;
+import uns.ac.rs.rating_service.dto.client.UserDTO;
 import uns.ac.rs.rating_service.dto.request.CreateHostRatingRequest;
 import uns.ac.rs.rating_service.dto.request.UpdateHostRatingRequest;
 import uns.ac.rs.rating_service.dto.response.MessageResponse;
 import uns.ac.rs.rating_service.mapper.HostRatingMapper;
 import uns.ac.rs.rating_service.model.HostRating;
+import uns.ac.rs.rating_service.model.client.ENotificationType;
 import uns.ac.rs.rating_service.repository.HostRatingRepository;
+import uns.ac.rs.rating_service.service.client.NotificationServiceClient;
 import uns.ac.rs.rating_service.service.client.ReservationServiceClient;
 import uns.ac.rs.rating_service.service.client.UserServiceClient;
 import java.math.BigDecimal;
@@ -30,12 +33,16 @@ public class HostRatingService {
 
     private final ReservationServiceClient reservationServiceClient;
 
+    private final NotificationServiceClient notificationServiceClient;
+
     public HostRatingService(HostRatingRepository hostRatingRepository,
                              UserServiceClient userServiceClient,
-                             ReservationServiceClient reservationServiceClient) {
+                             ReservationServiceClient reservationServiceClient,
+                             NotificationServiceClient notificationServiceClient) {
         this.hostRatingRepository = hostRatingRepository;
         this.userServiceClient = userServiceClient;
         this.reservationServiceClient = reservationServiceClient;
+        this.notificationServiceClient = notificationServiceClient;
     }
 
     public MessageResponse rateHost(String host,
@@ -69,6 +76,16 @@ public class HostRatingService {
 
             hostRatingRepository.save(newHostRating);
 
+            CreateNotificationRequest createNotificationRequest = new CreateNotificationRequest(
+                    host,
+                    "Guest "
+                            + userDetails.getUsername()
+                            + " rated you.",
+                    ENotificationType.HOST_RATED.name()
+            );
+
+            notificationServiceClient.createNotification(createNotificationRequest, jwtToken);
+
             return new MessageResponse("Host rated successfully.");
         } else {
             throw new SecurityException("You cannot rate this host.");
@@ -85,6 +102,20 @@ public class HostRatingService {
     public HostRatingDTO getHostRatingById(UUID hostRatingId) {
         HostRating hostRating = hostRatingRepository.findById(hostRatingId)
                 .orElseThrow(() -> new NoSuchElementException("Host rating not found with id: " + hostRatingId));
+
+        return HostRatingMapper.toHostRatingDTO(hostRating);
+    }
+
+    public HostRatingDTO getHostRatingByGuest(String jwtToken, String host) {
+        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
+        if (userDetails == null) {
+            throw new IllegalStateException("User details could not be retrieved.");
+        }
+        if (!userDetails.getRoles().contains("ROLE_GUEST")) {
+            throw new SecurityException("User do not have permission for this action.");
+        }
+
+        HostRating hostRating = hostRatingRepository.findByGuestAndHost(userDetails.getUsername(), host);
 
         return HostRatingMapper.toHostRatingDTO(hostRating);
     }

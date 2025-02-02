@@ -1,4 +1,4 @@
-package uns.ac.rs.rating_service.dto;
+package uns.ac.rs.rating_service.dto.client;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

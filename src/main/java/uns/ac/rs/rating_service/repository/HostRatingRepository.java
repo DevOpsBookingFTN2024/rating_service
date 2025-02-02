@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface HostRatingRepository extends JpaRepository<HostRating, UUID> {
     List<HostRating> findByHost(String host);
 
+    HostRating findByGuestAndHost(String guest, String host);
+
     boolean existsByGuestAndHost(String guest, String host);
 
     @Query("SELECT AVG(hr.rating) FROM HostRating hr WHERE hr.host = :host")

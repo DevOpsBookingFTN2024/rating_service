@@ -43,6 +43,15 @@ public class AccommodationRatingController {
         return ResponseEntity.ok(accommodationRating);
     }
 
+    @GetMapping("/guest/{accommodationRatingId}")
+    public ResponseEntity<?> getAccommodationRatingByGuest(@PathVariable UUID accommodationRatingId,
+                                                           @RequestHeader("Authorization") String authorizationHeader) {
+        String jwtToken = authorizationHeader.replace("Bearer ", "");
+        AccommodationRatingDTO accommodationRating = accommodationRatingService
+                .getAccommodationRatingByGuest(jwtToken, accommodationRatingId);
+        return ResponseEntity.ok(accommodationRating);
+    }
+
     @PutMapping("/update/{accommodationRatingId}")
     public ResponseEntity<?> updateAccommodationRating(@PathVariable UUID accommodationRatingId,
                              @Valid @RequestBody UpdateAccommodationRatingRequest updateAccommodationRatingRequest,
