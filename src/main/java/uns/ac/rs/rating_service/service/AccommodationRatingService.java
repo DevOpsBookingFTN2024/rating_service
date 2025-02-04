@@ -132,6 +132,11 @@ public class AccommodationRatingService {
         AccommodationRating accommodationRating = accommodationRatingRepository
                 .findByGuestAndIdAccommodation(userDetails.getUsername(), idAccommodation);
 
+        if (accommodationRating == null) {
+            throw new NoSuchElementException(
+                    "Accommodation rating not found for guest: " + userDetails.getUsername());
+        }
+
         return AccommodationRatingMapper.toAccommodationRatingDTO(accommodationRating);
     }
 
