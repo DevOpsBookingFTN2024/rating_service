@@ -117,6 +117,10 @@ public class HostRatingService {
 
         HostRating hostRating = hostRatingRepository.findByGuestAndHost(userDetails.getUsername(), host);
 
+        if (hostRating == null) {
+            throw new NoSuchElementException("Host rating not found for guest: " + userDetails.getUsername() + " and host: " + host);
+        }
+
         return HostRatingMapper.toHostRatingDTO(hostRating);
     }
 
